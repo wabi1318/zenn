@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "zenn-cli": "^0.1.147"
+    "zenn-cli": "^0.1.154"
   },
-  "description": ""
+  "description": "* [📘 How to use](https://zenn.dev/zenn/articles/zenn-cli-guide)"
 }
