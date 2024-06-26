@@ -11,5 +11,8 @@
   "dependencies": {
     "zenn-cli": "^0.1.154"
   },
-  "description": "* [📘 How to use](https://zenn.dev/zenn/articles/zenn-cli-guide)"
+  "description": "* [📘 How to use](https://zenn.dev/zenn/articles/zenn-cli-guide)",
+  "volta": {
+    "node": "20.14.0"
+  }
 }
