@@ -8,8 +8,9 @@ chapters:
   - intro
   - what-is-nestjs
   - basic-architecture
-  - modules
   - controllers
+  - dto
+  - modules
   - services
   - middleware
   - pipes
@@ -18,4 +19,6 @@ chapters:
   - interceptors
   - custom-decorators
   - openapi
+  - references
+
 
