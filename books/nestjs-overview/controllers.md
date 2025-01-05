@@ -1,17 +1,18 @@
 ---
-title: "Controller"
+title: "Controllerとは"
 ---
+## Controllerとは
 Controllerとは、クライアントからのリクエストを受け取り、レスポンスを返す役割を持つものです。
-つまり、NestJSにおけるルーティングの機能を担っています。
+つまり、NestJSにおけるルーティングの機能を担っています。なお、Controllerは必ずModuleクラスに属します。
 ![クライアントとコントローラーの関係図](/images/nestjs-overview/controller.png)
 引用: https://docs.nestjs.com/controllers
 
-なお、Controllerは必ずModuleクラスに属します。
-
-# 定義方法
+## Controllerの定義方法
+Controllerは以下のように定義されます。
 1. クラスに@Controller()デコレータをつける。
 2. メソッドにHTTPメソッドデコレーターをつける。
 
+以下は具体的なコードの例です。コメントに実際のパスを記述しています。
 ```ts:cats.controller.ts
 import { Controller, Get, Query, Post, Body, Put, Param, Delete } from '@nestjs/common';
 import { CreateCatDto, UpdateCatDto, ListAllEntities } from './dto';
@@ -44,8 +45,23 @@ export class CatsController {
   }
 }
 ```
+```@Get()```, ```@Post()```, ```@Put()```, ```@Delete()```は、対応するHTTPメソッドデコレータです（デコレータについては、「Custom Decoratorとは」の章を参照してください）。
 
-Controllerを使用するためには、Moduleへの登録が必要です。
+```@Controller```に```cats```のようなパスプレフィックスを使用することで、関連するルーティングを簡単にグループ化することができます。
+上記の例では全て```cats```がパスの最初に来ています。
+
+## ルートパラメータ
+動的なルートパラメータ（パスパラメータ）を使用したい場合は、対応するパスのHTTPメソッドデコレータにルートパラメータトークン（ex: ```:id```）を使用します。
+このルートパラメータは```@Param```デコレータを使用してアクセスすることができます。
+
+```ts
+  @Get(':id') // GET /cats/:id
+  findOne(@Param('id') id: string) {
+    return `This action returns a #${id} cat`;
+  }
+```
+
+なお、Controllerを使用するためには、Moduleへの登録が必要です。
 ```ts:cats.module.ts
 import { Module } from '@nestjs/common';
 import { CatsController } from './cats.controller';
@@ -58,8 +74,7 @@ import { CatsService } from './cats.service';
 export class CatsModule {}
 ```
 
-
-# 作成コマンド
+## 作成コマンド
 ```
 nest g controller <name>
 ```

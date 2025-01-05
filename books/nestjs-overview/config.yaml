@@ -1,4 +1,4 @@
-title: "NestJSを外観する"
+title: "NestJSを概観する"
 summary: "現在業務でNestJSを使用していますが、日本語で概念を説明する資料が少なく、学習に苦労しました（しています）。"
 topics: [nestjs]
 published: false
@@ -9,9 +9,9 @@ chapters:
   - what-is-nestjs
   - basic-architecture
   - controllers
-  - dto
+  - providers
   - modules
-  - services
+  - dto
   - middleware
   - pipes
   - exception-filters
