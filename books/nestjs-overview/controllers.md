@@ -21,12 +21,12 @@ import { CreateCatDto, UpdateCatDto, ListAllEntities } from './dto';
 export class CatsController {
   @Post() // POST /cats
   create(@Body() createCatDto: CreateCatDto) {
-    return 'This action adds a new cat';
+    return `This action adds a new cat: ${JSON.stringify(createCatDto)}`;
   }
 
   @Get() // GET /cats?limit=XX
-  findAll(@Query() query: ListAllEntities) {
-    return `This action returns all cats (limit: ${query.limit} items)`;
+  findAllWithLimit(@Query('limit') limit: string) {
+    return `This action returns all cats (limit: ${limit} items)`;
   }
 
   @Get(':id') // GET /cats/:id
@@ -45,7 +45,7 @@ export class CatsController {
   }
 }
 ```
-```@Get()```, ```@Post()```, ```@Put()```, ```@Delete()```は、対応するHTTPメソッドデコレータです（デコレータについては、「Custom Decoratorとは」の章を参照してください）。
+```@Get()```, ```@Post()```, ```@Put()```, ```@Delete()```は、対応するHTTPリクエストメソッドのデコレータです（デコレータについては、「Custom Decoratorとは」の章を参照してください）。
 
 ```@Controller```に```cats```のようなパスプレフィックスを使用することで、関連するルーティングを簡単にグループ化することができます。
 上記の例では全て```cats```がパスの最初に来ています。
@@ -54,11 +54,74 @@ export class CatsController {
 動的なルートパラメータ（パスパラメータ）を使用したい場合は、対応するパスのHTTPメソッドデコレータにルートパラメータトークン（ex: ```:id```）を使用します。
 このルートパラメータは```@Param```デコレータを使用してアクセスすることができます。
 
+### コード例
 ```ts
-  @Get(':id') // GET /cats/:id
+  @Get(':id')
   findOne(@Param('id') id: string) {
     return `This action returns a #${id} cat`;
   }
+```
+
+### リクエスト例
+```bash
+GET /cats/123
+```
+
+### レスポンス
+```text
+This action returns a #123 cat
+```
+
+## クエリパラメータ
+動的なクエリパラメータを使用したい場合は、対応するパスのHTTPメソッドデコレータに```@Query()```デコレータを使用します。
+
+### コード例
+```ts
+  @Get()
+  findAllWithLimit(@Query('limit') limit: string) {
+    return `This action returns all cats (limit: ${limit} items)`;
+  }
+```
+
+### リクエスト例
+```bash
+GET /cats/list?limit=5
+```
+
+### レスポンス
+```text
+This action returns all cats (limit: 5 items)
+```
+
+## リクエストボディ
+HTTPリクエストのボディに含まれるデータを取得するためには、```@Body```デコレータを使用します。
+
+### コード例
+```ts
+  @Post()
+  create(@Body() createCatDto: CreateCatDto) {
+    return `This action adds a new cat: ${JSON.stringify(createCatDto)}`;
+  }
+```
+
+### リクエスト例
+リクエストURL:
+```bash
+POST /cats
+```
+
+リクエストボディ（JSON）:
+```json
+{
+    "name": "Ran",
+    "age": "18",
+    "breed": "Mixed"
+}
+```
+
+### レスポンス
+```text
+This action adds a new cat: {"name":"Ran","age":"18","breed":"Mixed"}
 ```
 
 なお、Controllerを使用するためには、Moduleへの登録が必要です。
@@ -75,7 +138,7 @@ export class CatsModule {}
 ```
 
 ## 作成コマンド
-```
+```bash
 nest g controller <name>
 ```
 これを実行することで、Controllerの作成だけでなく、関連するFeatureモジュールにControllerが自動で登録されます。
