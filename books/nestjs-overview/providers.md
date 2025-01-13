@@ -67,7 +67,7 @@ export class CatsController {
 ```
 
 # 作成コマンド
-```
+```bash
 nest g service <name>
 ```
 これを実行することで、Serviceが作成されるだけでなく、関連するFeatureモジュールにServiceが登録されます。
