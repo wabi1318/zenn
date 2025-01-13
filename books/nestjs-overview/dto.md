@@ -1,5 +1,5 @@
 ---
-title: "DTOとは何か"
+title: "DTO"
 ---
 今まで見てきたControllerの中に、以下のような記述がありましした。
 ```ts:cats.controller.ts
@@ -13,13 +13,12 @@ title: "DTOとは何か"
 
 DTOは、データをカプセル化し、クライアントとサーバー、またはサーバー内の異なるレイヤー間でのデータ転送を標準化するオブジェクトです。TypeScriptでのinterfaceと似ていますが、DTOは以下の点で異なります。
 
-- interfaceは型チェックと構造定義に使用され、コンパイル後はJavaScriptから消えてしまいます。
-- DTOはJavaScriptの機能の一つであるクラスとして定義されるため、コンパイル後も残ります。
-- DTOは型チェックと構造定義に加え、データバリデーションを行うこともできます。
+- interfaceは型チェックと構造定義に使用され、コンパイル後はJavaScriptから消える。
+- DTOはJavaScriptの機能の一つであるクラスとして定義されるため、コンパイル後も残る。
+- DTOは型チェックと構造定義に加え、データバリデーションを行うこともできる。
 
 なおDTOはデータ構造を定義し、具体的な処理（ビジネスロジックなど）を含みません。
 
-DTOは、以下のような場合に使用されます。
 ## 使用例
 DTOは、さまざまなドメインオブジェクトからのデータを整理したり、ドメインオブジェクトからのデータの一部のみを取得したりできるように設計します。
 さらに、データのバリデーションやシリアル化のロジックのカプセル化にも役立てることができます。
@@ -48,6 +47,7 @@ export class CreateUserDto {
   readonly password: string;
 }
 ```
+
 2. ControllerでDTOクラスを使用する
 ```ts
 import { Controller, Post, Body } from '@nestjs/common';
@@ -62,20 +62,20 @@ export class UsersController {
   }
 }
 ```
-ここでは、@Body()デコレーターを使用してリクエストボディをDTOにバインドしています。
+ここでは、```@Body()```デコレーターを使用してリクエストボディをDTOにバインドしています。
 
 ## 具体的な使用例
 では、さらに具体的な使用方法について見ていきましょう。
 以下は、Userエンティティと、それを元に必要な情報だけを切り出すDTOの定義です。
 ```ts
-class User {
+export class User {
   id: number;
   name: string;
   email: string;
   password: string;
 }
 
-class UserProfileDto {
+export class UserProfileDto {
   name: string;
   email: string;
 }
@@ -83,8 +83,8 @@ class UserProfileDto {
 
 そして、以下のようなServiceでユーザー情報を取得します。
 ```ts
-class UserService {
-  getUserById(userId: number): User {
+export class UserService {
+ getUserById(userId: number): User {
     // データベースからユーザー情報を取得
     // …
     return user;
@@ -95,7 +95,7 @@ class UserService {
 ```UserService```を使用してUserエンティティを取得し、DTO（```UserProfileDto```）を使用してデータのサブセットを返すControllerを定義します。
 ```ts
 @Controller('users')
-class UsersController {
+export class UsersController {
   constructor(private readonly userService: UserService) {}
 
   @Get(':id/profile')
@@ -117,20 +117,20 @@ class UsersController {
 さらに、ユーザー情報と、最新のブログ投稿を一緒に取得できるようなアプリケーションを考えてみましょう。
 以下のように、ユーザーと投稿データを表すエンティティ、それらをまとめたDTOを定義します。
 ```ts
-class User {
+export class User {
   id: number;
   name: string;
   email: string;
 }
 
-class Post {
+export class Post {
   id: number;
   title: string;
   content: string;
   userId: number;
 }
 
-class UserWithLatestPostDto {
+export class UserWithLatestPostDto {
   name: string;
   email: string;
   latestPostTitle: string;
@@ -140,7 +140,7 @@ class UserWithLatestPostDto {
 
 そして、以下のようなServiceでユーザー情報と最新のブログ投稿を取得します。
 ```ts
-class UserService {
+export class UserService {
   getUserWithLatestPost(userId: number): { user: User, latestPost: Post } {
     // データベースからユーザー情報を取得
     // …
@@ -156,7 +156,7 @@ class UserService {
 ```UserService```を使用してユーザー情報と最新の投稿を取得し、DTO（```UserWithLatestPostDto```）を使用してデータを返すControllerを定義します。
 ```ts
 @Controller('users')
-class UsersController {
+export class UsersController {
   constructor(private userService: UserService) {}
 
   @Get(':id/with-latest-post')
@@ -175,4 +175,4 @@ class UsersController {
   }
 }
 ```
-これで、複数のデータをまとめ、クライアントに必要なデータのみを返すことができました。
+これで、複数のドメインオブジェクトをまとめ、クライアントに必要なデータのみを返すことができました。
