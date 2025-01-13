@@ -1,5 +1,5 @@
 ---
-title: "Controllerとは"
+title: "Controller"
 ---
 ## Controllerとは
 Controllerとは、クライアントからのリクエストを受け取り、レスポンスを返す役割を持つものです。

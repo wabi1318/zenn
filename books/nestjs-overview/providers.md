@@ -1,5 +1,5 @@
 ---
-title: "Provider（Service）とは"
+title: "Provider（Service）"
 ---
 Providerとは、他のアプリケーションコンポーネントにサービスのインスタンスを提供するオブジェクトのことです。つまり、Providerは、オブジェクトインスタンスの作成、管理、提供の役割を担います。
 
