@@ -1,5 +1,5 @@
 ---
-title: "Custom Decoratorとは"
+title: "Custom Decorator"
 ---
 ## Decoratorとは
 :::message

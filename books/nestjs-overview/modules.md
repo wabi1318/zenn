@@ -8,16 +8,13 @@ ControllerやProvider（Service）をまとめ、１つの機能として利用�
 1. クラスに@Moduleデコレーターをつける。
 2. @Moduleデコレーターの各プロパティを記述する。
    - providers
-    DI(Dependency Injection)をするためのプロパティ。```@Injectable```デコレーターがついたクラス（＝Provider）を記述する。
+    DI(Dependency Injection)をするためのプロパティ。```@Injectable```デコレーターがついたクラス（＝Provider）を記述することで、そのクラスを使用することができる。
    - controllers
     Controllerを使用するためのプロパティ。```@Controller```デコレーターがついたクラスを記述する。
    - imports
-    モジュール内部で必要な外部モジュールを記述するためのプロパティ。
-    Featureモジュールをルートモジュールに追加する場合もここを利用する。
+    モジュール内部で必要な外部モジュールを記述するためのプロパティ。Featureモジュールをルートモジュールに追加する場合もここを利用する。
    - exports
     外部モジュールで利用したいものを記述する。
-
-DIについては、Dependency Injectionの章をご覧ください。
 
 ### Featureモジュール
 いままで見てきた通り、同じ機能に属するControllerやServiceはFeatureモジュールに登録する必要があります。
@@ -92,6 +89,12 @@ import { CatsModule } from './cats/cats.module';
 })
 export class AppModule {}
 ```
+
+## Dependency Injection
+DIとは、オブジェクト（クラス）同士の依存を外部から設定する設計方針のことです。
+上で見てきた例では、
+
+Dependency Injectionについての詳しい説明は、[Dependency InjectionをJSで理解する](https://zenn.dev/zhenyou620/articles/dependency-injection)をご覧ください。
 
 ## 作成コマンド
 ```bash

@@ -11,3 +11,5 @@ title: "参考文献"
 - [TypeScriptに導入された新たな仕組みのデコレータ、その使い方と利便性とは？](https://codezine.jp/article/detail/19626)
 - [Announcing TypeScript 5.0](https://devblogs.microsoft.com/typescript/announcing-typescript-5-0/)
 - [ECMAScript Decorators の変遷と最終的な仕様](https://zenn.dev/pixiv/articles/ab9a7d7f654a79)
+- [フロントエンドのデザインパターン](https://zenn.dev/morinokami/books/learning-patterns-1/viewer/singleton-pattern)
+- [NestJS meetup Tokyo Opening Talk / What is NestJS? #nestjs_meetup](https://speakerdeck.com/potato4d/what-is-nestjs-number-nestjs-meetup)

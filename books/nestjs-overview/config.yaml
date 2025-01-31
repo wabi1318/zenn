@@ -12,13 +12,12 @@ chapters:
   - providers
   - modules
   - dto
-  - middleware
-  - pipes
-  - exception-filters
-  - guards
-  - interceptors
-  - custom-decorators
-  - openapi
-  - references
+  # - middleware
+  # - pipes
+  # - exception-filters
+  # - guards
+  # - interceptors
+  # - custom-decorators
+  # - references
 
 
