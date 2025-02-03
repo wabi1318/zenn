@@ -1,5 +1,5 @@
 title: "NestJSを概観する"
-summary: "現在業務でNestJSを使用していますが、日本語で概念を説明する資料が少なく、学習に苦労しました（しています）。"
+summary: "NestJSの基本的な概念やアーキテクチャについて解説します。"
 topics: [nestjs]
 published: true
 price: 0 # 有料の場合200〜5000
