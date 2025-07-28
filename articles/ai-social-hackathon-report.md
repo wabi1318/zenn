@@ -1,5 +1,5 @@
 ---
-title: "生成 AI× 社会課題ハッカソンで2冠してきた話（技術寄り）"
+title: "生成 AI×社会課題ハッカソンで2冠してきた話（技術寄り）"
 emoji: "✨"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [AI]
