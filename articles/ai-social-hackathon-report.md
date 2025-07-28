@@ -81,6 +81,7 @@ Vercel には、PR ごとにプレビュー環境を自動で構築してくれ�
 この機能と AI を組み合わせた開発フローが、今回の開発に合っていました。
 
 ![](https://storage.googleapis.com/zenn-user-upload/bef2c4080c0a-20250722.png)
+_Visit Preview を押すと、プレビューが表示される_
 
 具体的な流れは以下の通りです。
 
@@ -105,6 +106,7 @@ AI Care Work Portolio 内では、主に「ケア活動の検出（カレンダ�
 さらに、プロンプト自体の改善も AI に任せていました。NotebookLM に OpenAI のベストプラクティスを学習させ、私が作成したプロンプトを「ベストプラクティスに従って改善して」と指示することで、精度向上も高速化することができました。
 
 ![](/images/ai-social-hackathon-report/notebooklm.png)
+_プロンプトの改善をぶん投げている様子_
 
 # 各 AI ツールの使い分け
 
