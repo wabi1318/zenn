@@ -1,5 +1,5 @@
 ---
-title: "フロントエンドカンファレンス東京"
+title: "フロントエンドカンファレンス東京に行ってきたレポ"
 emoji: "🧠"
 type: "idea" # tech: 技術記事 / idea: アイデア
 topics: []
