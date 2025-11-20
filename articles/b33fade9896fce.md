@@ -6,7 +6,7 @@ topics: ["Vue.js"]
 published: true
 ---
 
-10/25 に行われた Vue Fes Japan に参加してきましたのでレポします（遅くなってすみません）。
+10/25 に行われた Vue Fes Japan 2025 に参加してきましたのでレポします（遅くなってすみません）。
 
 # Vue Fes Japan とは
 
