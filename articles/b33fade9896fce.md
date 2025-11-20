@@ -2,7 +2,7 @@
 title: "Vue Fes Japan 2025にいってきたレポ"
 emoji: "🍹"
 type: "idea" # tech: 技術記事 / idea: アイデア
-topics: [Vue.js]
+topics: ["Vue.js"]
 published: true
 ---
 
