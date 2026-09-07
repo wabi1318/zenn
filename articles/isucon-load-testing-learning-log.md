@@ -3,7 +3,7 @@ title: "ISUCON学習ログ：第3章「基礎的な負荷試験」のアクセ�
 emoji: "📝"
 type: "idea"
 topics: ["isucon", "読書メモ", "nginx", "alp"]
-published: false
+published: true
 ---
 
 『達人が教えるWebパフォーマンスチューニング』の第3章を読み進めている。
