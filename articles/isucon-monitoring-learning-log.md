@@ -3,7 +3,7 @@ title: "ISUCON学習ログ：第2章「モニタリング」"
 emoji: "📊"
 type: "idea"
 topics: ["isucon", "読書メモ", "prometheus"]
-published: true
+published: false
 ---
 
 『達人が教えるWebパフォーマンスチューニング』の第2章を読んだ。
