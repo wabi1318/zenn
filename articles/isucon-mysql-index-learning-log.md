@@ -3,7 +3,7 @@ title: "ISUCON学習ログ：付録Aのスロークエリログとインデッ�
 emoji: "🔍"
 type: "idea"
 topics: ["isucon", "読書メモ", "mysql", "alp"]
-published: true
+published: false
 ---
 
 『達人が教えるWebパフォーマンスチューニング』の付録A「private-isuの攻略実践」を進めている。
