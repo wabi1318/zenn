@@ -11,6 +11,7 @@ private-isuの練習で使うコマンドを、導入・設定と実行の順に
 ## 最初に導入・設定するもの
 
 ツールの導入とNginx・MySQLの設定を先に済ませる。
+Ubuntu/DebianのBash環境をまとめて整えたい場合は、[Bashの補完・履歴の設定手順](https://github.com/sorafujitani/dotfiles/tree/main/dot_config/bash)も参照する（任意）。
 
 ### VS CodeのRemote-SSH拡張機能
 
