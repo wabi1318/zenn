@@ -1,17 +1,16 @@
 ---
-title: "ISUCON学習ログ：練習で使うコマンドと調査メモ"
+title: "ISUCON学習ログ：練習で使うコマンド集"
 emoji: "🧰"
 type: "idea"
 topics: ["isucon", "学習記録", "nginx", "alp", "mysql"]
 published: true
 ---
 
-private-isuの練習で使うコマンドと、アクセスログやデータベースの負荷を調べるメモを整理した。
-NginxのJSONログとalp、サーバー上のコード操作、静的ファイル配信、MySQLの状態確認を記録する。
+private-isuの練習で使うコマンドを、導入・設定と実行の順にまとめた。
 
 ## 最初に導入・設定するもの
 
-作業を始める前に、記事内で使うツールを導入し、NginxとMySQLの設定を済ませる。
+ツールの導入とNginx・MySQLの設定を先に済ませる。
 
 ### VS CodeのRemote-SSH拡張機能
 
@@ -72,8 +71,7 @@ JSON形式を指定するときは、既存の`access_log`設定をコメント�
 
 ### Nginxから静的ファイルを配信する
 
-静的ファイルの配信は、アプリケーションを経由せずにNginxから直接行う。
-サーバー上で`sites-enabled`の設定を確認し、`sites-available/isucon.conf`を編集する。
+競技用サーバーで`sites-enabled`を確認し、`sites-available/isucon.conf`を編集する。
 
 ```bash
 ls -la /etc/nginx/sites-enabled/
@@ -87,18 +85,7 @@ location ~ ^/(favicon\.ico|css/|js/|img/) {
 }
 ```
 
-`location`は、クライアントからリクエストされたURLのパスに応じて処理の分岐ルールを定義するブロック。
-
-### 投稿画像の配信設定
-
-投稿画像をNginxから配信するため、アプリケーションとNginxを次のように動かす。
-
-1. アプリケーションサーバーはアップロードされた画像を、インスタンス上のファイルとして保存する。
-2. 画像のリクエストを最初に受けるNginxは、ファイルがあればそのまま配信する。
-3. ファイルがなければ、アプリケーションサーバーへリバースプロキシする。
-4. アプリケーションサーバーはMySQLから画像を取得し、ファイルとして保存した上でレスポンスを返す。
-
-`try_files`は、Nginxがリクエストを受けたとき、指定されたパスに物理ファイルがあるかを判定する設定。
+### 投稿画像のNginx設定
 
 ```nginx
 location /image/ {
@@ -174,8 +161,6 @@ sudo systemctl reload nginx
 /home/isucon/private_isu.git/webapp
 ```
 
-これはサーバー上のフォルダーを直接開く機能。
-
 ## Macへコードと設定をコピーする
 
 Mac側で作業ディレクトリを作り、サーバーから`webapp`を取得する。
@@ -235,32 +220,13 @@ rsync -avz \
   isucon-01:/home/isucon/private_isu.git/webapp/ruby/app.rb
 ```
 
-## プロセスとスレッド
-
-- プロセスはプログラムの単位で、メモリは独立して動く。
-- スレッドは処理の実行単位で、メモリを共有する場合がある。
-- C10K問題は、クライアント数が1万を超えた辺りでパフォーマンスが極端に落ちる問題。
-- マルチプロセス・シングルスレッドでは、クライアントからの1リクエストを1プロセスが処理する。プロセスは処理中にほかのリクエストを処理できず、1リクエストごとに独立したプロセスを生成する。
-- シングルプロセス・マルチスレッドでは、1つのプロセスで複数のスレッドを立ち上げる。
-
-## NoSQL
-
-NoSQLは、伝統的なRDBMSとは異なるデータ構造や設計思想を持つデータベースの総称。
-固定スキーマを持たず、強い一貫性を持つ代わりに高速で、複数サーバーに分散できる。
-RDBMSは強い一貫性を持つため複数サーバーへのデータ分散が難しく、NoSQLは分散できるアーキテクチャになっている。
-
 ## MySQLのプロセスを確認する
-
-MySQL上でどのプロセス（スレッド）が動き、どの程度のCPUを使っているかを調べるには、`SHOW PROCESSLIST`を使う。
-OSの`top`コマンドのように、MySQL上の処理を確認する。
 
 ```sql
 SHOW PROCESSLIST;
 ```
 
 ## pt-query-digestでスロークエリを集計する
-
-pt-query-digestは、データベースに負荷をかけている重いクエリを特定、集計するためのパフォーマンス解析ツール。
 
 スロークエリログを表示する。
 
@@ -274,36 +240,10 @@ sudo pt-query-digest /var/log/mysql/mysql-slow.log | less
 sudo pt-query-digest /var/log/mysql/mysql-slow.log | tee "digest_$(date +%Y%m%d%H%M).txt"
 ```
 
-解析結果には、次の内容がある。
-
-1. `Overall`：全体統計。
-2. `Profile`：サマリとランキング。
-3. `Query Report`：個別の詳細レポート。
-
-pt-query-digestは、似たクエリをまとめ、負荷への寄与が大きかった順に表示する。
-
-- `Query ID`：クエリのハッシュ値。
-- `Response time`：実行時間の合計と全体に占める割合（秒）。
-- `Calls`：実行された回数。
-- `R/Call`：1回あたりの時間。
-
-`Response time`の割合が高いクエリは、ボトルネックになる。
-`Calls`が多い場合は、N+1問題が発生している典型的なサイン。
-
-## ベンチマーク後に調べる
-
-pt-query-digestで解析し、`Rank 1`から`Rank 3`を確認する。
-
-- `Calls`が多すぎる場合は、アプリのコードを直してN+1問題を解消する。
-- `Rows examined`が大きすぎる場合は、`EXPLAIN`を確認してデータベースにインデックスを追加する。
-- スローログをリセットしてから再度ベンチマークを回し、効果を測定する。
-
-投稿一覧で使うSQL。
+## 投稿一覧のSQLを確認する
 
 ```sql
 SELECT `id`, `user_id`, `body`, `created_at`, `mime`
 FROM `posts`
 ORDER BY `created_at` DESC;
 ```
-
-N+1問題は、親データを1回取得した後、取得したレコードに関連するデータを個別に問い合わせるクエリがN回発行され、合計N+1回のクエリになって性能が悪くなる問題。
