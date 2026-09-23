@@ -1,31 +1,13 @@
 ---
-title: "ISUCON学習ログ：練習中に調べた用語とクエリ"
+title: "ISUCON学習ログ：プロセスとスレッド、NoSQL、SQL調査"
 emoji: "🔎"
 type: "idea"
-topics: ["isucon", "学習記録", "mysql", "nginx"]
-published: true
+topics: ["isucon", "学習記録", "mysql"]
+published: false
 ---
 
-private-isuの練習中に調べた、サーバーの処理とMySQLのクエリに関するメモ。
-実行コマンドは[練習で使うコマンド集](https://zenn.dev/zhenyou620/articles/isucon-command-collection-learning-log)にまとめた。
-
-## 静的ファイルと投稿画像の配信
-
-静的ファイルはアプリケーションを経由せず、Nginxから直接配信する。
-Nginxの`location`は、リクエストされたURLのパスに応じて処理を分ける設定。
-
-投稿画像の配信では、次のように動かす。
-
-1. アプリケーションサーバーはアップロードされた画像をインスタンス上のファイルとして保存する。
-2. Nginxはファイルがあればそのまま配信する。
-3. ファイルがなければ、アプリケーションサーバーへリバースプロキシする。
-4. アプリケーションサーバーはMySQLから画像を取得し、ファイルとして保存した上で応答する。
-
-`try_files`は、Nginxが指定されたパスに物理ファイルがあるかを判定する設定。
-
-## Remote-SSHでサーバーのコードを開く
-
-VS CodeのRemote-SSHでは、サーバー上のフォルダーを直接開く。
+2026年9月22日のprivate-isuの練習で、プロセスとスレッド、NoSQL、MySQLの処理とクエリの見方を調べた。
+練習で使ったコマンドは[コマンド集](https://zenn.dev/zhenyou620/articles/isucon-command-collection-learning-log)に分けた。
 
 ## プロセスとスレッド
 
