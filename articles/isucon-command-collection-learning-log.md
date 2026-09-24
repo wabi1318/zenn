@@ -58,6 +58,11 @@ bash ~/setup-remote-bash.sh && exec bash -l
 この手順は`interactive.bash`と`setup.sh`を`${XDG_CONFIG_HOME:-$HOME/.config}/bash`へ配置し、既存ファイルがあれば退避してからBashの読込み設定を追加する。
 `setup.sh`は補完と履歴検索に使うツールのほか、`alp`と`pt-query-digest`も導入する。
 セットアップが成功した場合は、後述の`alp`と`pt-query-digest`の手動導入は不要。
+`isucon`ユーザーの`~/.local/bin/alp`を`/usr/local/bin`にも配置する場合は、次のコマンドを実行する。
+
+```bash
+sudo install -m 755 /home/isucon/.local/bin/alp /usr/local/bin/alp
+```
 
 ### alp
 
