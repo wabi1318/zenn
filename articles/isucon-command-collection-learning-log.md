@@ -6,18 +6,67 @@ topics: ["isucon", "学習記録", "nginx", "alp", "mysql"]
 published: true
 ---
 
-private-isuの練習で使うコマンドを、導入・設定と実行の順にまとめた。
+private-isuの練習で使うコマンドを、計測準備、計測、最適化の順にまとめた。
 
-## 最初に導入・設定するもの
+## 計測準備
 
-ツールの導入とNginx・MySQLの設定を先に済ませる。
-Ubuntu/DebianのBash環境をまとめて整えたい場合は、[Bashの補完・履歴の設定手順](https://github.com/sorafujitani/dotfiles/tree/main/dot_config/bash)も参照する（任意）。
+### Bashの補完と履歴検索
 
-### VS CodeのRemote-SSH拡張機能
+[dotfilesのBash設定](https://github.com/sorafujitani/dotfiles/tree/main/dot_config/bash)を使う場合は、UbuntuまたはDebianのBash 4以上と、root権限またはsudo権限が必要。
+SSH先で普段使うユーザーとして、`~/setup-remote-bash.sh`を作成し、次の内容を保存する。
 
-VS CodeにMicrosoftのRemote - SSH拡張機能をインストールする。
+```bash
+nano ~/setup-remote-bash.sh
+```
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+if (( EUID == 0 )); then
+  apt-get update
+  apt-get install -y curl ca-certificates
+else
+  sudo apt-get update
+  sudo apt-get install -y curl ca-certificates
+fi
+
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/bash"
+download_dir=$(mktemp -d)
+trap 'rm -rf -- "$download_dir"' EXIT
+base_url=https://raw.githubusercontent.com/sorafujitani/dotfiles/main/dot_config/bash
+for file in interactive.bash setup.sh; do
+  curl -fL --retry 2 "$base_url/$file" -o "$download_dir/$file"
+done
+
+mkdir -p "$config_dir"
+for file in interactive.bash setup.sh; do
+  if [[ -e "$config_dir/$file" ]]; then
+    cp -p "$config_dir/$file" "$config_dir/$file.backup.$(date +%Y%m%d%H%M%S).$$"
+  fi
+  cp "$download_dir/$file" "$config_dir/$file"
+done
+bash "$config_dir/setup.sh"
+```
+
+保存後、同じSSH先で実行してBashを開き直す。
+
+```bash
+bash ~/setup-remote-bash.sh && exec bash -l
+```
+
+この手順は`interactive.bash`と`setup.sh`を`${XDG_CONFIG_HOME:-$HOME/.config}/bash`へ配置し、既存ファイルがあれば退避してからBashの読込み設定を追加する。
+`setup.sh`は補完と履歴検索に使うツールのほか、`alp`と`pt-query-digest`も導入する。
+セットアップが成功した場合は、後述の`alp`と`pt-query-digest`の手動導入は不要。
+`isucon`ユーザーの`~/.local/bin/alp`を`/usr/local/bin`にも配置する場合は、次のコマンドを実行する。
+
+```bash
+sudo install -m 755 /home/isucon/.local/bin/alp /usr/local/bin/alp
+```
 
 ### alp
+
+上記のBashセットアップを使わない場合は、手動で導入する。
 
 競技用サーバーでアーキテクチャを確認し、`/tmp`へ移動する。
 
@@ -36,6 +85,8 @@ alp --version
 ```
 
 ### pt-query-digest
+
+上記のBashセットアップを使わない場合は、手動で導入する。
 
 ```bash
 sudo apt update
@@ -69,6 +120,174 @@ access_log /var/log/nginx/access.log json;
 ```
 
 JSON形式を指定するときは、既存の`access_log`設定をコメントアウトする。
+設定を検査し、成功した場合だけNginxへ反映する。
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### MySQLのスロークエリ設定
+
+ベンチマークを回すときは、スロークエリログの設定で`long_query_time = 0`にする。
+MySQLの設定を変更した場合は、設定を検査してから再起動し、状態を確認する。
+
+```bash
+sudo mysqld --validate-config
+sudo systemctl restart mysql
+sudo systemctl status mysql
+```
+
+## 計測コマンド
+
+### JSONログの出力を確認する
+
+古いログやテキスト形式のログを空にしてから、テストリクエストを送る。
+
+```bash
+sudo truncate -s 0 /var/log/nginx/access.log
+curl -I http://localhost/
+```
+
+ログの先頭行がJSON形式であることを確認する。
+
+```bash
+sudo head -n 1 /var/log/nginx/access.log
+```
+
+### ベンチマーク前にログを空にする
+
+ベンチマークを回す直前に、アクセスログとスロークエリログを空にし、ログを開き直す。
+
+```bash
+sudo truncate -s 0 /var/log/nginx/access.log
+sudo truncate -s 0 /var/log/mysql/mysql-slow.log
+sudo mysqladmin flush-logs
+sudo systemctl reload nginx
+```
+
+### alpでアクセスログを集計する
+
+`alp json`でアクセスログを解析、集計する。
+
+```bash
+sudo alp json \
+  --file /var/log/nginx/access.log \
+  --method-key request_method \
+  --uri-key request_uri \
+  --body-bytes-key body_bytes_sent \
+  --sort sum -r \
+  -m '/posts/[0-9]+,/@\w+,/image/\d+' \
+  -o count,method,uri,min,avg,max,sum
+```
+
+### MySQLのプロセスを確認する
+
+```sql
+SHOW PROCESSLIST;
+```
+
+### pt-query-digestでスロークエリを集計する
+
+スロークエリログを表示する。
+
+```bash
+sudo pt-query-digest /var/log/mysql/mysql-slow.log | less
+```
+
+解析結果をファイルへ保存する。
+
+```bash
+sudo pt-query-digest /var/log/mysql/mysql-slow.log | tee "digest_$(date +%Y%m%d%H%M).txt"
+```
+
+### 投稿一覧のSQLを確認する
+
+```sql
+SELECT `id`, `user_id`, `body`, `created_at`, `mime`
+FROM `posts`
+ORDER BY `created_at` DESC;
+```
+
+## 最適化コマンド
+
+### VS Codeでサーバーに接続する
+
+VS CodeにMicrosoftのRemote - SSH拡張機能をインストールする。
+
+1. `Cmd + Shift + P`でコマンドパレットを開く。
+2. `Remote-SSH: Connect to Host...`を選ぶ。
+3. 普段ターミナルからSSH接続するときと同じ接続先を選ぶ。例えば、普段`ssh isucon-01`なら`isucon-01`を選ぶ。
+4. 接続後、「ファイル → フォルダーを開く」で次のパスを指定する。
+
+```text
+/home/isucon/private_isu.git/webapp
+```
+
+### Macへコードと設定をコピーする
+
+Mac側で作業ディレクトリを作り、サーバーから`webapp`を取得する。
+
+```bash
+mkdir -p ~/work/private-isu-local/server-config/system
+
+rsync -avz \
+  isucon-01:/home/isucon/private_isu.git/webapp \
+  ~/work/private-isu-local/
+```
+
+NginxとMySQLの設定をコピーする。
+
+```bash
+rsync -avzL \
+  isucon-01:/etc/nginx \
+  isucon-01:/etc/mysql \
+  ~/work/private-isu-local/server-config/
+```
+
+systemdの設定をコピーする。
+
+```bash
+rsync -avzL \
+  isucon-01:/etc/systemd/system/isu-ruby.service \
+  isucon-01:/etc/systemd/system/multi-user.target.wants/nginx.service \
+  isucon-01:/etc/systemd/system/multi-user.target.wants/mysql.service \
+  isucon-01:/etc/systemd/system/multi-user.target.wants/memcached.service \
+  ~/work/private-isu-local/server-config/system/
+```
+
+```bash
+codex
+```
+
+### Rubyの配置先を確認してファイルを反映する
+
+実行中のRubyの配置先を確認する。
+
+```bash
+sudo systemctl show isu-ruby -p WorkingDirectory -p ExecStart
+```
+
+サーバー上で、変更前の`app.rb`を退避する。
+
+```bash
+cp -p /home/isucon/private_isu.git/webapp/ruby/app.rb \
+  "/home/isucon/app.rb.before-$(date +%Y%m%d-%H%M%S)"
+```
+
+Mac側から確認したファイルをサーバーへ転送する。
+
+```bash
+rsync -avz \
+  ~/work/private-isu-local/webapp/ruby/app.rb \
+  isucon-01:/home/isucon/private_isu.git/webapp/ruby/app.rb
+```
+
+Rubyサービスの設定を変更した場合は、再起動して反映する。
+
+```bash
+sudo systemctl restart isu-ruby.service
+```
 
 ### Nginxから静的ファイルを配信する
 
@@ -106,145 +325,4 @@ location @app {
 ```bash
 sudo nginx -t
 sudo systemctl reload nginx
-```
-
-### MySQLのスロークエリ設定
-
-ベンチマークを回すときは、スロークエリログの設定で`long_query_time = 0`にする。
-
-## JSONログの出力を確認してalpで集計する
-
-古いログやテキスト形式のログを空にしてから、テストリクエストを送る。
-
-```bash
-sudo truncate -s 0 /var/log/nginx/access.log
-curl -I http://localhost/
-```
-
-ログの先頭行がJSON形式であることを確認する。
-
-```bash
-sudo head -n 1 /var/log/nginx/access.log
-```
-
-`alp json`でアクセスログを解析、集計する。
-
-```bash
-sudo alp json \
-  --file /var/log/nginx/access.log \
-  --method-key request_method \
-  --uri-key request_uri \
-  --body-bytes-key body_bytes_sent \
-  --sort sum -r \
-  -m '/posts/[0-9]+,/@\w+,/image/\d+' \
-  -o count,method,uri,min,avg,max,sum
-```
-
-## ベンチマーク前にログを空にする
-
-ベンチマークを回す直前に、アクセスログとスロークエリログを空にし、ログを開き直す。
-
-```bash
-sudo truncate -s 0 /var/log/nginx/access.log
-sudo truncate -s 0 /var/log/mysql/mysql-slow.log
-sudo mysqladmin flush-logs
-sudo systemctl reload nginx
-```
-
-## VS Codeでサーバーに接続する
-
-1. `Cmd + Shift + P`でコマンドパレットを開く。
-2. `Remote-SSH: Connect to Host...`を選ぶ。
-3. 普段ターミナルからSSH接続するときと同じ接続先を選ぶ。例えば、普段`ssh isucon-01`なら`isucon-01`を選ぶ。
-4. 接続後、「ファイル → フォルダーを開く」で次のパスを指定する。
-
-```text
-/home/isucon/private_isu.git/webapp
-```
-
-## Macへコードと設定をコピーする
-
-Mac側で作業ディレクトリを作り、サーバーから`webapp`を取得する。
-
-```bash
-mkdir -p ~/work/private-isu-local/server-config/system
-
-rsync -avz \
-  isucon-01:/home/isucon/private_isu.git/webapp \
-  ~/work/private-isu-local/
-```
-
-NginxとMySQLの設定をコピーする。
-
-```bash
-rsync -avzL \
-  isucon-01:/etc/nginx \
-  isucon-01:/etc/mysql \
-  ~/work/private-isu-local/server-config/
-```
-
-systemdの設定をコピーする。
-
-```bash
-rsync -avzL \
-  isucon-01:/etc/systemd/system/isu-ruby.service \
-  isucon-01:/etc/systemd/system/multi-user.target.wants/nginx.service \
-  isucon-01:/etc/systemd/system/multi-user.target.wants/mysql.service \
-  isucon-01:/etc/systemd/system/multi-user.target.wants/memcached.service \
-  ~/work/private-isu-local/server-config/system/
-```
-
-```bash
-codex
-```
-
-## Rubyの配置先を確認してファイルを反映する
-
-実行中のRubyの配置先を確認する。
-
-```bash
-sudo systemctl show isu-ruby -p WorkingDirectory -p ExecStart
-```
-
-サーバー上で、変更前の`app.rb`を退避する。
-
-```bash
-cp -p /home/isucon/private_isu.git/webapp/ruby/app.rb \
-  "/home/isucon/app.rb.before-$(date +%Y%m%d-%H%M%S)"
-```
-
-Mac側から確認したファイルをサーバーへ転送する。
-
-```bash
-rsync -avz \
-  ~/work/private-isu-local/webapp/ruby/app.rb \
-  isucon-01:/home/isucon/private_isu.git/webapp/ruby/app.rb
-```
-
-## MySQLのプロセスを確認する
-
-```sql
-SHOW PROCESSLIST;
-```
-
-## pt-query-digestでスロークエリを集計する
-
-スロークエリログを表示する。
-
-```bash
-sudo pt-query-digest /var/log/mysql/mysql-slow.log | less
-```
-
-解析結果をファイルへ保存する。
-
-```bash
-sudo pt-query-digest /var/log/mysql/mysql-slow.log | tee "digest_$(date +%Y%m%d%H%M).txt"
-```
-
-## 投稿一覧のSQLを確認する
-
-```sql
-SELECT `id`, `user_id`, `body`, `created_at`, `mime`
-FROM `posts`
-ORDER BY `created_at` DESC;
 ```
