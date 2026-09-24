@@ -11,13 +11,63 @@ private-isuの練習で使うコマンドを、導入・設定と実行の順に
 ## 最初に導入・設定するもの
 
 ツールの導入とNginx・MySQLの設定を先に済ませる。
-Ubuntu/DebianのBash環境をまとめて整えたい場合は、[Bashの補完・履歴の設定手順](https://github.com/sorafujitani/dotfiles/tree/main/dot_config/bash)も参照する（任意）。
+
+### Bashの補完と履歴検索
+
+[dotfilesのBash設定](https://github.com/sorafujitani/dotfiles/tree/main/dot_config/bash)を使う場合は、UbuntuまたはDebianのBash 4以上と、root権限またはsudo権限が必要。
+SSH先で普段使うユーザーとして、`~/setup-remote-bash.sh`を作成し、次の内容を保存する。
+
+```bash
+nano ~/setup-remote-bash.sh
+```
+
+```bash
+#!/usr/bin/env bash
+set -e
+
+if (( EUID == 0 )); then
+  apt-get update
+  apt-get install -y curl ca-certificates
+else
+  sudo apt-get update
+  sudo apt-get install -y curl ca-certificates
+fi
+
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/bash"
+download_dir=$(mktemp -d)
+trap 'rm -rf -- "$download_dir"' EXIT
+base_url=https://raw.githubusercontent.com/sorafujitani/dotfiles/main/dot_config/bash
+for file in interactive.bash setup.sh; do
+  curl -fL --retry 2 "$base_url/$file" -o "$download_dir/$file"
+done
+
+mkdir -p "$config_dir"
+for file in interactive.bash setup.sh; do
+  if [[ -e "$config_dir/$file" ]]; then
+    cp -p "$config_dir/$file" "$config_dir/$file.backup.$(date +%Y%m%d%H%M%S).$$"
+  fi
+  cp "$download_dir/$file" "$config_dir/$file"
+done
+bash "$config_dir/setup.sh"
+```
+
+保存後、同じSSH先で実行してBashを開き直す。
+
+```bash
+bash ~/setup-remote-bash.sh && exec bash -l
+```
+
+この手順は`interactive.bash`と`setup.sh`を`${XDG_CONFIG_HOME:-$HOME/.config}/bash`へ配置し、既存ファイルがあれば退避してからBashの読込み設定を追加する。
+`setup.sh`は補完と履歴検索に使うツールのほか、`alp`と`pt-query-digest`も導入する。
+セットアップが成功した場合は、後述の`alp`と`pt-query-digest`の手動導入は不要。
 
 ### VS CodeのRemote-SSH拡張機能
 
 VS CodeにMicrosoftのRemote - SSH拡張機能をインストールする。
 
 ### alp
+
+上記のBashセットアップを使わない場合は、手動で導入する。
 
 競技用サーバーでアーキテクチャを確認し、`/tmp`へ移動する。
 
@@ -36,6 +86,8 @@ alp --version
 ```
 
 ### pt-query-digest
+
+上記のBashセットアップを使わない場合は、手動で導入する。
 
 ```bash
 sudo apt update
