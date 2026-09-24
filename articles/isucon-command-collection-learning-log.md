@@ -120,10 +120,23 @@ access_log /var/log/nginx/access.log json;
 ```
 
 JSON形式を指定するときは、既存の`access_log`設定をコメントアウトする。
+設定を検査し、成功した場合だけNginxへ反映する。
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
 
 ### MySQLのスロークエリ設定
 
 ベンチマークを回すときは、スロークエリログの設定で`long_query_time = 0`にする。
+MySQLの設定を変更した場合は、設定を検査してから再起動し、状態を確認する。
+
+```bash
+sudo mysqld --validate-config
+sudo systemctl restart mysql
+sudo systemctl status mysql
+```
 
 ## 計測コマンド
 
@@ -268,6 +281,12 @@ Mac側から確認したファイルをサーバーへ転送する。
 rsync -avz \
   ~/work/private-isu-local/webapp/ruby/app.rb \
   isucon-01:/home/isucon/private_isu.git/webapp/ruby/app.rb
+```
+
+Rubyサービスの設定を変更した場合は、再起動して反映する。
+
+```bash
+sudo systemctl restart isu-ruby.service
 ```
 
 ### Nginxから静的ファイルを配信する
