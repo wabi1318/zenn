@@ -6,9 +6,9 @@ topics: ["isucon", "学習記録", "nginx", "alp", "mysql"]
 published: true
 ---
 
-private-isuの練習で使うコマンドを、計測準備、計測、最適化の順にまとめた。
+private-isuの練習で使うコマンドを、ツールのセットアップ、ログ出力の設定、設定の反映、計測、最適化の順にまとめた。
 
-## 計測準備
+## ツールをセットアップする
 
 ### Bashの補完と履歴検索
 
@@ -94,6 +94,8 @@ sudo apt install percona-toolkit
 pt-query-digest --version
 ```
 
+## ログの出力を設定する
+
 ### NginxのアクセスログをJSON形式にする
 
 競技用サーバーでNginxの設定ファイルを開く。
@@ -120,6 +122,15 @@ access_log /var/log/nginx/access.log json;
 ```
 
 JSON形式を指定するときは、既存の`access_log`設定をコメントアウトする。
+
+### MySQLのスロークエリ設定
+
+ベンチマークを回すときは、スロークエリログの設定で`long_query_time = 0`にする。
+
+## 設定を反映する
+
+### Nginxの設定を検査して再読み込みする
+
 設定を検査し、成功した場合だけNginxへ反映する。
 
 ```bash
@@ -127,9 +138,8 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-### MySQLのスロークエリ設定
+### MySQLの設定を検査して再起動する
 
-ベンチマークを回すときは、スロークエリログの設定で`long_query_time = 0`にする。
 MySQLの設定を変更した場合は、設定を検査してから再起動し、状態を確認する。
 
 ```bash
