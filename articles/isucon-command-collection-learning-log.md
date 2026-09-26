@@ -125,7 +125,23 @@ JSON形式を指定するときは、既存の`access_log`設定をコメント�
 
 ### MySQLのスロークエリ設定
 
-ベンチマークを回すときは、スロークエリログの設定で`long_query_time = 0`にする。
+競技用サーバーでMySQLの設定ファイルを開く。
+
+```bash
+sudo mkdir -p /etc/mysql/mysql.conf.d
+sudo touch /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+```
+
+既存の`[mysqld]`の設定を残し、同じ項目があれば重複させずに次の値へ変更する。
+ベンチマークで速いSQLも記録するため、`long_query_time`を`0`にする。
+
+```ini
+[mysqld]
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/mysql-slow.log
+long_query_time = 0
+```
 
 ## 設定を反映する
 
