@@ -10,13 +10,20 @@ private-isuの練習で使うコマンドを、ツールのセットアップ、
 
 ## ツールをセットアップする
 
+UbuntuまたはDebianの競技用サーバーで、先にVimをインストールする。rootユーザーでは`sudo`を外す。
+
+```bash
+sudo apt-get update
+sudo apt-get install -y vim
+```
+
 ### Bashの補完と履歴検索
 
 [dotfilesのBash設定](https://github.com/sorafujitani/dotfiles/tree/main/dot_config/bash)を使う場合は、UbuntuまたはDebianのBash 4以上と、root権限またはsudo権限が必要。
 SSH先で普段使うユーザーとして、`~/setup-remote-bash.sh`を作成し、次の内容を保存する。
 
 ```bash
-nano ~/setup-remote-bash.sh
+vim ~/setup-remote-bash.sh
 ```
 
 ```bash
@@ -101,7 +108,7 @@ pt-query-digest --version
 競技用サーバーでNginxの設定ファイルを開く。
 
 ```bash
-sudo nano /etc/nginx/nginx.conf
+sudo vim /etc/nginx/nginx.conf
 ```
 
 `http { ... }`ブロック内にJSON形式のログ設定を追記、または確認する。
@@ -130,7 +137,7 @@ JSON形式を指定するときは、既存の`access_log`設定をコメント�
 ```bash
 sudo mkdir -p /etc/mysql/mysql.conf.d
 sudo touch /etc/mysql/mysql.conf.d/mysqld.cnf
-sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 
 既存の`[mysqld]`の設定を残し、同じ項目があれば重複させずに次の値へ変更する。
@@ -164,6 +171,20 @@ sudo systemctl restart mysql
 sudo systemctl status mysql
 ```
 
+MySQLの起動後、設定値が反映されたことを確認する。
+
+```bash
+sudo mysql -e "
+  SHOW VARIABLES
+  WHERE Variable_name IN (
+    'slow_query_log',
+    'slow_query_log_file',
+    'long_query_time',
+    'log_output'
+  );
+"
+```
+
 ## 計測コマンド
 
 ### JSONログの出力を確認する
@@ -186,10 +207,10 @@ sudo head -n 1 /var/log/nginx/access.log
 ベンチマークを回す直前に、アクセスログとスロークエリログを空にし、ログを開き直す。
 
 ```bash
-sudo truncate -s 0 /var/log/nginx/access.log
-sudo truncate -s 0 /var/log/mysql/mysql-slow.log
-sudo mysqladmin flush-logs
-sudo systemctl reload nginx
+sudo truncate -s 0 /var/log/nginx/access.log &&
+  sudo truncate -s 0 /var/log/mysql/mysql-slow.log &&
+  sudo mysqladmin flush-logs &&
+  sudo systemctl reload nginx
 ```
 
 ### alpでアクセスログを集計する
@@ -211,6 +232,24 @@ sudo alp json \
 
 ```sql
 SHOW PROCESSLIST;
+```
+
+### MySQLのロック待ちを確認する
+
+`id_generator`を含むテーブルのロック待ちと、待機側・ブロック側のクエリを確認する。
+
+```sql
+SELECT
+  wait_started,
+  wait_age,
+  locked_table,
+  locked_index,
+  waiting_pid,
+  blocking_pid,
+  waiting_query,
+  blocking_query
+FROM sys.innodb_lock_waits
+WHERE locked_table LIKE '%id_generator%';
 ```
 
 ### pt-query-digestでスロークエリを集計する
@@ -321,7 +360,7 @@ sudo systemctl restart isu-ruby.service
 
 ```bash
 ls -la /etc/nginx/sites-enabled/
-sudo nano /etc/nginx/sites-available/isucon.conf
+sudo vim /etc/nginx/sites-available/isucon.conf
 ```
 
 ```nginx
